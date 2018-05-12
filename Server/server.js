@@ -1,31 +1,33 @@
 const http = require('http');
 const express = require('express');
 const socketio = require('socket.io');
+const fs = require('fs');
 
 const app = express();
 
-const clientPath = __dirname+'/../client';
+const clientPath = __dirname + '/../client/';
 console.log(clientPath);
 const port = 12012;
 
 app.use(express.static(clientPath));
 
-const server = http.createServer(app);
-const ioserver = socketio(server);
-
-ioserver.on('connection', socket => {
-    console.log('client connected    | ' + socket.id);
-    socket.emit('message', "You're connected");
-    socket.on('disconnect', () => {
-        console.log('client disconnected | ' + socket.id);
-    });
-});
+const httpServer = http.createServer(app);
+const ioserver = socketio(httpServer);
 
 
-server.on('error', () => {
+httpServer.on('error', () => {
     console.log('random error appeared');
 });
 
-server.listen(port, () => {
+httpServer.listen(port, () => {
     console.log('Server listens on port '+ port);
 });
+
+
+require('../bin/entity')
+require('../bin/cinamon')
+const server = require('./src/js/server')(ioserver);
+const game = new (require('./src/js/game'))(server);
+server.setGame(game);
+
+setInterval(game.update.bind(game), 1000/25);
