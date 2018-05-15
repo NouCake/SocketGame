@@ -8,4 +8,6 @@ Entity = function(id, x, y, key){
 Entity.prototype = Object.create(Object.prototype);
 Entity.prototype.constructor = Entity;
 
-module.exports =  Entity;
+Entity.prototype.update = function(){
+    
+}

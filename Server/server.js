@@ -5,7 +5,7 @@ const fs = require('fs');
 
 const app = express();
 
-const clientPath = __dirname + '/../client/';
+const clientPath = __dirname + '/../';
 console.log(clientPath);
 const port = 12012;
 
@@ -16,7 +16,7 @@ const ioserver = socketio(httpServer);
 
 
 httpServer.on('error', () => {
-    console.log('random error appeared');
+    console.log('random error apeared');
 });
 
 httpServer.listen(port, () => {
@@ -24,10 +24,14 @@ httpServer.listen(port, () => {
 });
 
 
-require('../bin/entity')
-require('../bin/cinamon')
+require('../bin/js/entity')
+require('../bin/js/cinamon')
+require('../bin/js/player')
+require('../bin/js/block')
+require('../bin/js/platform')
+require('./src/js/game')
 const server = require('./src/js/server')(ioserver);
-const game = new (require('./src/js/game'))(server);
+const game = new Game(server);
 server.setGame(game);
 
 setInterval(game.update.bind(game), 1000/25);

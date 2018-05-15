@@ -27,57 +27,7 @@ loadingState = {
     }
 }
 
-gameState = {
-    preload: function(){
-        game.load.spritesheet('fox', 'src/assets/fox.png', 50, 50);
-        game.load.image('block', 'src/assets/block.png');
-    },
-    create: function(){
-        game.renderer.renderSession.roundPixels = true
-        game.camera.roundPx = true;
-
-        this.entities = [];
-        Client.sendReady();
-    },
-    syncEntities: function(newEntities){
-        entitiesToRemove = []; //listing all entitys, so that i can delete all entities that dont receive an update
-        for(i in this.entities){
-            entitiesToRemove[i] = true;
-        }
-        for(i in newEntities){
-            entity = newEntities[i];
-            if(this.entities[entity.id]){
-                this.entities[entity.id].x = entity.x;
-                this.entities[entity.id].y = entity.y;
-            } else {
-                console.log("create");
-                console.log(entity.key);
-                this.entities[entity.id] = new Phaser.Sprite(game, entity.x, entity.y, entity.key);
-                game.world.add(this.entities[entity.id]);
-            }
-            delete entitiesToRemove[entity.id];
-        }
-
-        for(i in entitiesToRemove){
-            this.entities[i].destroy();
-            console.log("destoyed");
-        }
-    },
-    inputs: [Phaser.Keyboard.RIGHT,
-        Phaser.Keyboard.LEFT,
-        Phaser.Keyboard.UP,
-        Phaser.Keyboard.DOWN],
-    sendPlayerInput: function(){
-        input = 0;
-        for(i = 0; i < this.inputs.length; i++){
-            input += game.input.keyboard.isDown(this.inputs[i]) * Math.pow(2, i)
-        }
-        Client.sendInput(input);
-    },
-    update: function(){
-        this.sendPlayerInput();
-    }
-}
+gameState = new GameState();
 
 game.state.add('loading', loadingState);
 game.state.add('game', gameState);

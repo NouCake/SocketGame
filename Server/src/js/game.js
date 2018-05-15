@@ -1,53 +1,51 @@
-function Game() {
+Game = function() {
     this.entities = [];
     this.server = Server;
 
-    this.box = new Entity(Math.random(), 100, 500, 'block');
-    this.box.width = 150;
-    this.box.height = 100;
-    CinamonPhysics.add(this.box);
-    this.box.body.solid =
-    this.entities.push(this.box);
+    this.entities.push(new Entity.Block(Math.random(), 100, 600));
+    this.entities.push(new Entity.Block(Math.random(), 400, 600));
+    this.entities.push(new Entity.Platform(Math.random(), 250, 500));
+
+    this._lastFrame = Date.now();
+    Game.startTime = Date.now();
 }
+
+Game.deltaTime = 0;
+Game.startTime = -1;
 
 Game.prototype = Object.create(Object.prototype);
 Game.prototype.constructor = Game;
 
 Game.prototype.update = function(){
-    CinamonPhysics.update();
+    Game.deltaTime = Date.now() - this._lastFrame;
+    this._lastFrame = Date.now();
+    this.updateEntitys();
+    CinamonPhysics.update(Game.deltaTime);
+    this.sendEntitys();
+}
 
-    package = [];
-    this.server. sendPackage('entity', 
-        this.entities.map(entity => {
-            return {id: entity.id, x: entity.x, y: entity.y, key: entity.key};
-        }));
+Game.prototype.updateEntitys = function(){
+    for(i in this.entities){ 
+        this.entities[i].update(Game.deltaTime);
+    }
+}
+
+Game.prototype.sendEntitys = function(){
+    package = this.entities.map(entity => {
+        return {id: entity.id, x: entity.x, y: entity.y, key: entity.key, type: entity.type};
+    });
+    Server.sendPackage('entityData', package);
 }
 
 Game.prototype.addNewPlayer = function(id){
-    player = new Entity(id, Math.random() * 800, Math.random() * 640, 'fox');
-    CinamonPhysics.add(player);
-    
-    player.onCollision = function(other){
-        player.body.speed.set(0);
-        console.log("hellp");
-    }
-
+    player = new Entity.Player(id, Math.random() * 800, Math.random() * 640);
+    //player.body.speed.x = 5;
     this.entities.push(player);
 }
 
 Game.prototype.removePlayer = function(id){
     this.entities = this.entities.filter(entity => entity.id != id)
     CinamonPhysics.childs = CinamonPhysics.childs.filter(child => child.id != id);
-}
-
-Game.prototype.updatePlayer = function(id, input){
-    player = this.getPlayer(id);
-    for(i = 0; i < 4; i++){
-        player.x += (input & 1) >= 1;
-        player.x -= (input & 2) >= 1;
-        player.y -= (input & 4) >= 1;
-        player.y += (input & 8) >= 1;
-    }
 }
 
 Game.prototype.getPlayer = function(id){
