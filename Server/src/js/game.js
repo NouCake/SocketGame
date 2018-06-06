@@ -8,25 +8,64 @@ Game = function() {
 
     this._lastFrame = Date.now();
     Game.startTime = Date.now();
+    Game.currentTime = Date.now();
+    Game.nextUpdate = Date.now();
+    this.updateStack = [];
 }
 
 Game.deltaTime = 0;
 Game.startTime = -1;
+Game.currentTime = -1;
+Game.nextUpdate = -1;
 
 Game.prototype = Object.create(Object.prototype);
 Game.prototype.constructor = Game;
 
 Game.prototype.update = function(){
     Game.deltaTime = Date.now() - this._lastFrame;
+    Game.nextUpdate += Game.deltaTime;
+
     this._lastFrame = Date.now();
-    this.updateEntitys();
-    CinamonPhysics.update(Game.deltaTime);
+
+    for(i in this.updateStack){
+        curData = this.updateStack[i];
+        if(curData.timeStamp > Game.currentTime){
+            //packet rechtzeitig
+            if(curData.timeStamp <= Game.nextUpdate){
+                //packet nicht zu früh
+                deltaTime = curData.timeStamp - Game.currentTime;
+
+                this.updateEntitys(deltaTime);
+                CinamonPhysics.update(deltaTime);
+                Game.currentTime += deltaTime;
+                
+                player = this.getPlayer(curData.id);
+                if(player){
+                    player.updateInput(curData.input);
+                    if((curData.pos.x - player.x) * (curData.pos.x - player.x) > 25){
+                        Server.syncPlayer(player);
+                    }
+                }
+
+                delete this.updateStack[i];
+            }
+        } else {
+            delete this.updateStack[i];
+        }
+    }
+
+    pendingUpdates = 0;
+    if(this.updateStack) this.updateStack.forEach(element => {
+        if(element != null) pendingUpdates++;
+    });
+    //console.log("pending updates: " + pendingUpdates);
+
     this.sendEntitys();
 }
 
-Game.prototype.updateEntitys = function(){
+Game.prototype.updateEntitys = function(deltaTime){
     for(i in this.entities){ 
-        this.entities[i].update(Game.deltaTime);
+        this.entities[i].update(deltaTime);
     }
 }
 

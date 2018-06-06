@@ -31,7 +31,7 @@ Server = {
             Server.game.addNewPlayer(socket.id);
             Server.sendWelcomePackage(socket);
 
-            socket.on('input', Server.receivePlayerInput(socket));
+            socket.on('playerInf', Server.receivePlayerInformation(socket));
             socket.on('getPos', () => console.log(Server.game.getPlayer(socket.id)));
         }
     },
@@ -51,9 +51,9 @@ Server = {
         player = Server.game.getPlayer(id);
         return {id: player.id, x: player.x, y: player.y};
     },
-    receivePlayerInput: function(socket){
+    receivePlayerInformation: function(socket){
         return function(data){
-            Server.game.getPlayer(socket.id).updateInput(data);
+            Server.game.updateStack.push(data);
         }
     },
     sendPackage: function(key, data){
@@ -69,6 +69,13 @@ Server = {
     },
     setGame: function(game){
         this.game = game;
+    },
+    syncPlayer: function(player){
+        if(this.sockets[player.id]){
+            this.sockets[player.id].emit("syncPlayer", {x: player.x, y: player.y})
+        } else {
+            console.log("ERROR");
+        }
     }
 }
 

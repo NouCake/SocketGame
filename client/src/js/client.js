@@ -10,6 +10,7 @@ Client = {
         this.socket.on('connectionSuccess', this.validateConnection.bind(this));
         this.socket.on('entityData', this.receiveEntityData);
         this.socket.on('welcome', this.receiveWelcome);
+        this.socket.on('syncPlayer', this.syncPlayer)
         
     },
     receiveEntityData: function(data){
@@ -34,10 +35,25 @@ Client = {
         this.ingame = true;
         this.socket.emit('clientReady', true);
     },
-    sendInput: function(input){
-        this.socket.emit('input', input);
+    sendPlayerInformation: function(player, input, time){
+        data = {};
+        data.id = this.socket.id;
+        data.pos = {x: player.x, y: player.y}
+        data.input = input;
+        data.timeStamp = time;
+        if(time == undefined){
+            console.log("ERROR");
+        }
+        this.socket.emit('playerInf', data);
     },
     sendValidationPackage: function(data){
         this.socket.emit('validate', data);
+    },
+    syncPlayer: function(player){
+        if(Client.ingame){
+            game.state.getCurrentState().syncPlayer(player);
+        } else {
+            console.log("ERROR");
+        }
     }
 }

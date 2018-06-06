@@ -9,7 +9,8 @@ Player.prototype.constructor = Player;
 Player.prototype.update = function(){
     this.x = this.entity.x;
     this.y = this.entity.y;
-    if(this.entity.id == Client.socket.id){
-        this.entity.update(game.state.states['game'].deltaTime);
-    }
+}
+
+Player.prototype.updateEntity = function(deltaTime){
+    this.entity.update(deltaTime);
 }

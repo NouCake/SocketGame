@@ -15,26 +15,37 @@ GameState.prototype.create = function(){
     game.renderer.renderSession.roundPixels = true
     game.camera.roundPx = true;
 
-    this.startTime = -1;
     this.lastUpdate = -1;
-    this.deltaTime = 0;
+    this.startTime = -1;
+    this.currentTime = -1;
     this.entities = [];
-    Client.ingame = true;
-    console.log(Client.ingame);
     Client.sendReady();
+    Client.ingame = false;
 }
 
 GameState.prototype.update = function(){
-    this.sendInput();
-    this.deltaTime = Date.now() - this.lastUpdate;
-    CinamonPhysics.update(this.deltaTime);
+    if(!Client.ingame){
+        return;
+    }
+    this.processPlayer();
+
+    deltaTime = Date.now() - this.lastUpdate;
     this.lastUpdate = Date.now();
+
+    this.currentTime += deltaTime;
+    CinamonPhysics.update(deltaTime);
+
+    if(this.player){
+        this.player.updateEntity(deltaTime);
+    }
 }
 
 GameState.prototype.welcome = function(data){
-    console.log(Date.now() - data.time);
-    this.startTime = this.lastUpdate = data.time;
-    this.player = new Player(Client.socket.id, data.player.x, data.player.y);
+    Client.ingame = true;
+    this.lastUpdate = Date.now();
+    this.startTime = data.time;
+    this.currentTime = data.time;
+    player = this.player = new Player(Client.socket.id, data.player.x, data.player.y);
     this.entities[data.player.id] = this.player;
     game.world.add(this.player);
     if(data.player.id != Client.socket.id){
@@ -70,12 +81,12 @@ GameState.prototype.inputs = [Phaser.Keyboard.RIGHT,
     Phaser.Keyboard.DOWN,
     Phaser.Keyboard.SPACEBAR];
 
-GameState.prototype.sendInput = function(){
+GameState.prototype.processPlayer = function(){
     input = 0;
     for(i = 0; i < this.inputs.length; i++){
         input += game.input.keyboard.isDown(this.inputs[i]) * Math.pow(2, i)
     }
-    Client.sendInput(input);
+    Client.sendPlayerInformation(this.player, input, this.currentTime);
     if(this.player) this.player.entity.updateInput(input);
 }
 
@@ -105,6 +116,13 @@ GameState.prototype.updateEntity = function(entity){
         this.entities[entity.id].entity.x = entity.x;
         this.entities[entity.id].entity.y = entity.y;
     }
+}
+
+GameState.prototype.syncPlayer = function(player){
+    console.log("Me was wrong");
+    console.log(this.player.x - player.x);
+    this.player.entity.x = this.player.x = player.x;
+    this.player.entity.y = this.player.y = player.y;
 }
 
 
