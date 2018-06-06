@@ -88,7 +88,7 @@ GameState.prototype.sendInput = function(){
 
 GameState.prototype.createEntity = function(entity){
     if(entity.type == 'player'){
-        player = new Player(entity.id, entity.x, entity.y);
+        let player = new Player(entity.id, entity.x, entity.y);
         if(entity.id == Client.socket.id){
             console.log("ERROR");
         } else {
