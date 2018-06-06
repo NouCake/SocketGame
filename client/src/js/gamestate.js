@@ -9,6 +9,7 @@ GameState.prototype.preload = function(){
     game.load.spritesheet('fox', 'src/assets/fox.png', 50, 50);
     game.load.image('block', 'src/assets/block.png');
     game.load.image('platform', 'src/assets/platform.png');
+    game.load.spritesheet('dpad', 'src/assets/dpad.png', 32, 32);
 }
 
 GameState.prototype.create = function(){
@@ -21,6 +22,9 @@ GameState.prototype.create = function(){
     this.entities = [];
     Client.sendReady();
     Client.ingame = false;
+    this.ui = new Phaser.Group(game);
+    this.input = new Input(game, this.ui, this.inputs[2], this.inputs[3],
+        this.inputs[1], this.inputs[0], this.inputs[4]);
 }
 
 GameState.prototype.update = function(){
@@ -38,6 +42,7 @@ GameState.prototype.update = function(){
     if(this.player){
         this.player.updateEntity(deltaTime);
     }
+    this.input.update();
 }
 
 GameState.prototype.welcome = function(data){
@@ -83,16 +88,18 @@ GameState.prototype.inputs = [Phaser.Keyboard.RIGHT,
 
 GameState.prototype.processPlayer = function(){
     input = 0;
-    for(i = 0; i < this.inputs.length; i++){
-        input += game.input.keyboard.isDown(this.inputs[i]) * Math.pow(2, i)
-    }
-    Client.sendPlayerInformation(this.player, input, this.currentTime);
+    input += this.input.right * 1;
+    input += this.input.left * 2;
+    input += this.input.up * 4;
+    input += this.input.down * 8;
+    input += this.input.space * 16;
+    Client.sendInput(input);
     if(this.player) this.player.entity.updateInput(input);
 }
 
 GameState.prototype.createEntity = function(entity){
     if(entity.type == 'player'){
-        player = new Player(entity.id, entity.x, entity.y);
+        let player = new Player(entity.id, entity.x, entity.y);
         if(entity.id == Client.socket.id){
             console.log("ERROR");
         } else {

@@ -93,7 +93,6 @@ Entity.Player.prototype.movementUpdate = function(time){
         this.jumpTimer = 0; //makes player cant double jump
     } else {
         this._canJump = true;
-        this._canDash = true;
     }
 
     this._lastFrameJumpKey = this.input.jump;
@@ -128,6 +127,9 @@ Entity.Player.prototype.setGrounded = function (grounded){
     }
     if(grounded && this._canJump){
         this.jumpTimer = this.jumpTime;
+    }
+    if(grounded){
+        this._canDash = true;
     }
 }
 
