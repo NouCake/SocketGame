@@ -93,7 +93,7 @@ GameState.prototype.processPlayer = function(){
     input += this.input.up * 4;
     input += this.input.down * 8;
     input += this.input.space * 16;
-    Client.sendInput(input);
+    Client.sendPlayerInformation(this.player, input, this.currentTime);
     if(this.player) this.player.entity.updateInput(input);
 }
 
